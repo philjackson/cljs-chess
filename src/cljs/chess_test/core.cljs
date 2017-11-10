@@ -34,11 +34,14 @@
       (doall
        (for [c (range 1 9)]
          (let [nm (str "r" r "c" c)]
-           ^{:key nm} [:div.square {:id nm :class (square-colour r c)}
-                       (when-let [figure (get @board-data nm)]
+           ^{:key nm} (let [figure (get @board-data nm)]
+                        [:div.square {:id nm
+                                      :class (square-colour r c)
+                                      :on-click (fn [] (reset! currently-selected-square (if figure nm nil)))}
                          [:div.inner-square {:class (when (= nm @currently-selected-square)
                                                       "is-selected")}
-                          [:img {:src (str "img/pieces/maya/" figure ".svg")}]])])))))])
+                          (when figure
+                            [:img {:src (str "img/pieces/maya/" figure ".svg")}])]]))))))])
 
 (defn home-page []
   [board])
