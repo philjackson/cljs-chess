@@ -1,0 +1,30 @@
+.body-container {
+  font-family: 'Helvetica Neue', Verdana, Helvetica, Arial, sans-serif;
+}
+
+.square {
+  min-height: 12vw;
+  width: 12vw;
+}
+
+.board {
+  width: 96vw;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  margin: auto;
+  border: 2px solid black;
+}
+
+.inner-square.is-selected {
+    background-color: grey;
+}
+
+.brown {
+    background-color: #8b4513;
+}
+
+.tan {
+    background-color: #cd853f;
+}
