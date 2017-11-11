@@ -42,12 +42,15 @@
                            (dissoc cur-pos)
                            (assoc nxt-pos piece)))))
 
+(defn get-pos [&moves]
+  )
+
 (defn allowed-moves [position piece]
   (let [[row col] (vec position)
         [colour rank] (parse-piece piece)]
     (case rank
-      :pawn (when (= row "2")
-              [(str 3 col) (str 4 col)])
+      :pawn (cond-> []
+              (= row "2") (conj (str 3 col) (str 4 col)))
      [])))
 
 (def rows [1 2 3 4 5 6 7 8])
@@ -56,7 +59,7 @@
 (defn board []
   [:div.board
    (doall
-    (for [r rows]
+    (for[r rows]
       (doall
        (for [c cols]
          (let [nm (str r c)

@@ -107,7 +107,7 @@
 
                    :source-paths ["env/dev/clj"]
                    :plugins [[lein-figwheel "0.5.14"]
-                             [lein-doo "0.1.6"]
+                             [lein-doo "0.1.8"]
                              [cider/cider-nrepl "0.10.0-SNAPSHOT"]
                              [org.clojure/tools.namespace "0.3.0-alpha2"
                               :exclusions [org.clojure/tools.reader]]
