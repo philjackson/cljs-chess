@@ -42,6 +42,22 @@
                            (dissoc cur-pos)
                            (assoc nxt-pos piece)))))
 
+(defn parse-position [pos]
+  (let [[row* column*] (vec pos)
+        row (.parseInt js/window row*)
+        column (.parseInt js/window column*)]
+    [row column]))
+
+(defn get-pos [position colour & moves]
+  (reduce (fn [[row col] move]
+            (cond
+              (= move :left) [row (dec col)]
+              (= move :right) [row (inc col)]
+              (= move :backward) [(dec row) col]
+              (= move :forward) [(inc row) col]))
+          (parse-position position)
+          moves))
+
 (defn allowed-moves [position piece]
   (let [[row col] (vec position)
         [colour rank] (parse-piece piece)]
