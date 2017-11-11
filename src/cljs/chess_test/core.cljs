@@ -37,6 +37,12 @@
 
 (defn pos [row col] (str "r" row "c" col))
 
+(defn update-pos [cur-pos nxt-pos piece]
+  (let [copy @board-data]
+    (reset! board-data (-> copy
+                           (dissoc cur-pos)
+                           (assoc nxt-pos piece)))))
+
 (defn allowed-moves [position piece]
   (let [[row col] (parse-position position)]
     (case piece
