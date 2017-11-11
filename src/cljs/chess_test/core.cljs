@@ -12,28 +12,18 @@
 (def allowed-moves-data (atom []))
 
 ;; initial layout
-(def board-data (atom {"r1c1" "br" "r1c2" "bn" "r1c3" "bb" "r1c4" "bq" "r1c5" "bk" "r1c6" "bb" "r1c7" "bn" "r1c8" "br"
-                       "r2c1" "bp" "r2c2" "bp" "r2c3" "bp" "r2c4" "bp" "r2c5" "bp" "r2c6" "bp" "r2c7" "bp" "r2c8" "bp"
-                       "r7c1" "wp" "r7c2" "wp" "r7c3" "wp" "r7c4" "wp" "r7c5" "wp" "r7c6" "wp" "r7c7" "wp" "r7c8" "wp"
-                       "r8c1" "wr" "r8c2" "wn" "r8c3" "wb" "r8c4" "wk" "r8c5" "wq" "r8c6" "wb" "r8c7" "wn" "r8c8" "wr"}))
+(def board-data (atom {"1a" "br" "1b" "bn" "1c" "bb" "1d" "bq" "1e" "bk" "1f" "bb" "1g" "bn" "1h" "br"
+                       "2a" "bp" "2b" "bp" "2c" "bp" "2d" "bp" "2e" "bp" "2f" "bp" "2g" "bp" "2h" "bp"
+                       "7a" "wp" "7b" "wp" "7c" "wp" "7d" "wp" "7e" "wp" "7f" "wp" "7g" "wp" "7h" "wp"
+                       "8a" "wr" "8b" "wn" "8c" "wb" "8d" "wk" "8e" "wq" "8f" "wb" "8g" "wn" "8h" "wr"}))
 
 ;; -------------------------
 ;; Views
 
 (defn square-colour [r c]
   (if (= 0 (rem r 2))
-    (if (= 0 (rem c 2))
-      "brown"
-      "tan")
-    (if (= 0 (rem c 2))
-      "tan"
-      "brown")))
-
-(defn parse-position
-  "Given a position string such as 'r1c1', extract row and column."
-  [pos]
-  (let [[_ row col] (first (re-seq #"r([\d])c([\d])" pos))]
-    [row col]))
+    (if (= 0 (rem c 2)) "tan" "brown")
+    (if (= 0 (rem c 2)) "brown" "tan")))
 
 (defn parse-piece [piece]
   (let [[colour rank] (vec piece)]
@@ -46,8 +36,6 @@
        "b" :bishop
        "r" :rooke)]))
 
-(defn pos [row col] (str "r" row "c" col))
-
 (defn update-pos [cur-pos nxt-pos piece]
   (let [copy @board-data]
     (reset! board-data (-> copy
@@ -55,33 +43,34 @@
                            (assoc nxt-pos piece)))))
 
 (defn allowed-moves [position piece]
-  (let [[row col] (parse-position position)
+  (let [[row col] (vec position)
         [colour rank] (parse-piece piece)]
     (case rank
       :pawn (when (= row "2")
-              [(pos 3 col) (pos 4 col)])
+              [(str 3 col) (str 4 col)])
      [])))
+
+(def rows [1 2 3 4 5 6 7 8])
+(def cols [\a \b \c \d \e \f \g \h])
 
 (defn board []
   [:div.board
    (doall
-    (for [r (range 1 9)]
+    (for [r rows]
       (doall
-       (for [c (range 1 9)]
-         (let [nm (str "r" r "c" c)]
-           (let [piece (get @board-data nm)]
-             ^{:key nm} [:div.square {:id nm
-                                      :class (square-colour r c)
-                                      :on-click (fn []
-                                                  (reset! currently-selected-square (if piece nm nil))
-                                                  (reset! allowed-moves-data (if piece
-                                                                               (allowed-moves nm piece)
-                                                                               [])))}
-                         (let [allowed-move? (some #{nm} @allowed-moves-data)]
-                           [:div.inner-square {:class (when (= nm @currently-selected-square) "is-selected")}
-                            (cond
-                              allowed-move? [:span.allowed-move "•"]
-                              piece [:img {:src (str "img/pieces/maya/" piece ".svg")}])])]))))))])
+       (for [c cols]
+         (let [nm (str r c)
+               piece (get @board-data nm)]
+           ^{:key nm} [:div.square {:id nm
+                                    :class (square-colour r (.charCodeAt c 0))
+                                    :on-click (fn []
+                                                (reset! currently-selected-square (if piece nm nil))
+                                                (reset! allowed-moves-data (if piece (allowed-moves nm piece) [])))}
+                       (let [allowed-move? (some #{nm} @allowed-moves-data)]
+                         [:div.inner-square {:class (when (= nm @currently-selected-square) "is-selected")}
+                          (cond
+                            allowed-move? [:span.allowed-move "•"]
+                            piece [:img {:src (str "img/pieces/maya/" piece ".svg")}])])])))))])
 
 (defn home-page []
   [board])
