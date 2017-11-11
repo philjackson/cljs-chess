@@ -5,20 +5,33 @@
 .square {
   min-height: 12vw;
   width: 12vw;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.square img {
+    width: 12vw;
+    max-height: 12vw;
 }
 
 .board {
   width: 96vw;
   display: -webkit-flex;
   display: flex;
-  -webkit-flex-wrap: wrap;
   flex-wrap: wrap;
   margin: auto;
   border: 2px solid black;
 }
 
 .inner-square.is-selected {
-    background-color: grey;
+    background-color: #98FB98;
+}
+
+.allowed-move {
+    color: #98FB98;
+    font-size: 9vw;
 }
 
 .brown {

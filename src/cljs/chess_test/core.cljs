@@ -9,6 +9,8 @@
 
 (def currently-selected-square (atom "r1c1"))
 
+(def allowed-moves-data (atom []))
+
 ;; initial layout
 (def board-data (atom {"r1c1" "br" "r1c2" "bn" "r1c3" "bb" "r1c4" "bq" "r1c5" "bk" "r1c6" "bb" "r1c7" "bn" "r1c8" "br"
                        "r2c1" "bp" "r2c2" "bp" "r2c3" "bp" "r2c4" "bp" "r2c5" "bp" "r2c6" "bp" "r2c7" "bp" "r2c8" "bp"
@@ -27,6 +29,21 @@
       "tan"
       "brown")))
 
+(defn parse-position
+  "Given a position string such as 'r1c1', extract row and column."
+  [pos]
+  (let [[_ row col] (first (re-seq #"r([\d])c([\d])" pos))]
+    [row col]))
+
+(defn pos [row col] (str "r" row "c" col))
+
+(defn allowed-moves [position piece]
+  (let [[row col] (parse-position position)]
+    (case piece
+      "bp" (when (= row "2")
+             [(pos 3 col) (pos 4 col)])
+     [])))
+
 (defn board []
   [:div.board
    (doall
@@ -34,14 +51,17 @@
       (doall
        (for [c (range 1 9)]
          (let [nm (str "r" r "c" c)]
-           ^{:key nm} (let [figure (get @board-data nm)]
-                        [:div.square {:id nm
+           (let [piece (get @board-data nm)]
+             ^{:key nm} [:div.square {:id nm
                                       :class (square-colour r c)
-                                      :on-click (fn [] (reset! currently-selected-square (if figure nm nil)))}
-                         [:div.inner-square {:class (when (= nm @currently-selected-square)
-                                                      "is-selected")}
-                          (when figure
-                            [:img {:src (str "img/pieces/maya/" figure ".svg")}])]]))))))])
+                                      :on-click (fn []
+                                                  (reset! currently-selected-square (if piece nm nil))
+                                                  (reset! allowed-moves-data (allowed-moves nm piece)))}
+                         (let [allowed-move? (some #{nm} @allowed-moves-data)]
+                           [:div.inner-square {:class (when (= nm @currently-selected-square) "is-selected")}
+                            (cond
+                              allowed-move? [:span.allowed-move "•"]
+                              piece [:img {:src (str "img/pieces/maya/" piece ".svg")}])])]))))))])
 
 (defn home-page []
   [board])
