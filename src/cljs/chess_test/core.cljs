@@ -12,10 +12,10 @@
 (def allowed-moves-data (atom []))
 
 ;; initial layout
-(def board-data (atom {"1a" "br" "1b" "bn" "1c" "bb" "1d" "bq" "1e" "bk" "1f" "bb" "1g" "bn" "1h" "br"
-                       "2a" "bp" "2b" "bp" "2c" "bp" "2d" "bp" "2e" "bp" "2f" "bp" "2g" "bp" "2h" "bp"
-                       "7a" "wp" "7b" "wp" "7c" "wp" "7d" "wp" "7e" "wp" "7f" "wp" "7g" "wp" "7h" "wp"
-                       "8a" "wr" "8b" "wn" "8c" "wb" "8d" "wk" "8e" "wq" "8f" "wb" "8g" "wn" "8h" "wr"}))
+(def board-data (atom {"11" "br" "12" "bn" "13" "bb" "14" "bq" "15" "bk" "16" "bb" "17" "bn" "18" "br"
+                       "21" "bp" "22" "bp" "23" "bp" "24" "bp" "25" "bp" "26" "bp" "27" "bp" "28" "bp"
+                       "71" "wp" "72" "wp" "73" "wp" "74" "wp" "75" "wp" "76" "wp" "77" "wp" "78" "wp"
+                       "81" "wr" "82" "wn" "83" "wb" "84" "wk" "85" "wq" "86" "wb" "87" "wn" "88" "wr"}))
 
 ;; -------------------------
 ;; Views
@@ -42,9 +42,6 @@
                            (dissoc cur-pos)
                            (assoc nxt-pos piece)))))
 
-(defn get-pos [&moves]
-  )
-
 (defn allowed-moves [position piece]
   (let [[row col] (vec position)
         [colour rank] (parse-piece piece)]
@@ -54,7 +51,7 @@
      [])))
 
 (def rows [1 2 3 4 5 6 7 8])
-(def cols [\a \b \c \d \e \f \g \h])
+(def cols [1 2 3 4 5 6 7 8])
 
 (defn board []
   [:div.board
@@ -65,7 +62,7 @@
          (let [nm (str r c)
                piece (get @board-data nm)]
            ^{:key nm} [:div.square {:id nm
-                                    :class (square-colour r (.charCodeAt c 0))
+                                    :class (square-colour r c)
                                     :on-click (fn []
                                                 (reset! currently-selected-square (if piece nm nil))
                                                 (reset! allowed-moves-data (if piece (allowed-moves nm piece) [])))}
