@@ -55,10 +55,11 @@
                            (assoc nxt-pos piece)))))
 
 (defn allowed-moves [position piece]
-  (let [[row col] (parse-position position)]
-    (case piece
-      "bp" (when (= row "2")
-             [(pos 3 col) (pos 4 col)])
+  (let [[row col] (parse-position position)
+        [colour rank] (parse-piece piece)]
+    (case rank
+      :pawn (when (= row "2")
+              [(pos 3 col) (pos 4 col)])
      [])))
 
 (defn board []
@@ -73,7 +74,9 @@
                                       :class (square-colour r c)
                                       :on-click (fn []
                                                   (reset! currently-selected-square (if piece nm nil))
-                                                  (reset! allowed-moves-data (allowed-moves nm piece)))}
+                                                  (reset! allowed-moves-data (if piece
+                                                                               (allowed-moves nm piece)
+                                                                               [])))}
                          (let [allowed-move? (some #{nm} @allowed-moves-data)]
                            [:div.inner-square {:class (when (= nm @currently-selected-square) "is-selected")}
                             (cond
