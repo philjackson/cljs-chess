@@ -35,6 +35,17 @@
   (let [[_ row col] (first (re-seq #"r([\d])c([\d])" pos))]
     [row col]))
 
+(defn parse-piece [piece]
+  (let [[colour rank] (vec piece)]
+    [(if (= colour "b") :black :white)
+     (case rank
+       "p" :pawn
+       "n" :knight
+       "k" :king
+       "q" :queen
+       "b" :bishop
+       "r" :rooke)]))
+
 (defn pos [row col] (str "r" row "c" col))
 
 (defn update-pos [cur-pos nxt-pos piece]
