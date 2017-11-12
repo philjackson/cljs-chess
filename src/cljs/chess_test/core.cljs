@@ -3,19 +3,19 @@
               [secretary.core :as secretary :include-macros true]
               [accountant.core :as accountant]))
 
-(defn log [message]
-  (.log js/console message)
-  message)
+(defn log [& messages]
+  (doseq [message messages ] (.log js/console message))
+  (last messages))
 
 (def currently-selected-square (atom "r1c1"))
 
 (def allowed-moves-data (atom []))
 
 ;; initial layout
-(def board-data (atom {[1, 1], "br" [1, 2], "bn" [1, 3], "bb" [1, 4], "bq" [1, 5], "bk" [1, 6], "bb" [1, 7], "bn" [1, 8], "br"
-                       [2, 1], "bp" [2, 2], "bp" [2, 3], "bp" [2, 4], "bp" [2, 5], "bp" [2, 6], "bp" [2, 7], "bp" [2, 8], "bp"
-                       [7, 1], "wp" [7, 2], "wp" [7, 3], "wp" [7, 4], "wp" [7, 5], "wp" [7, 6], "wp" [7, 7], "wp" [7, 8], "wp"
-                       [8, 1], "wr" [8, 2], "wn" [8, 3], "wb" [8, 4], "wk" [8, 5], "wq" [8, 6], "wb" [8, 7], "wn" [8, 8], "wr"}))
+(def board-data (atom {[1 1] "br" [1 2] "bn" [1 3] "bb" [1 4] "bq" [1 5] "bk" [1 6] "bb" [1 7] "bn" [1 8] "br"
+                       [2 1] "bp" [2 2] "bp" [2 3] "bp" [2 4] "bp" [3 5] "bp" [2 6] "bp" [2 7] "bp" [2 8] "bp"
+                       [7 1] "wp" [3 2] "wp" [7 3] "wp" [7 4] "wp" [7 5] "wp" [7 6] "wp" [7 7] "wp" [7 8] "wp"
+                       [8 1] "wr" [8 2] "wn" [8 3] "wb" [8 4] "wk" [8 5] "wq" [8 6] "wb" [8 7] "wn" [8 8] "wr"}))
 
 ;; -------------------------
 ;; Views
@@ -42,23 +42,35 @@
                            (dissoc cur-pos)
                            (assoc nxt-pos piece)))))
 
-(defn get-pos [position colour & moves]
-  (reduce (fn [[row col] move]
-            (cond
-              (= move :left) [row (dec col)]
-              (= move :right) [row (inc col)]
-              (= move :backward) [(dec row) col]
-              (= move :forward) [(inc row) col]))
-          position
-          moves))
+(defn get-pos [position colour move]
+  (let [[row col] (vec position)]
+    (cond
+      (= move :left) [row (dec col)]
+      (= move :right) [row (inc col)]
+      (= move :backward) [(dec row) col]
+      (= move :forward) [(inc row) col])))
+
+(defn on-row? [row]
+  (fn [position]
+    (= (first position) row)))
+
+(defn unoccupied? [position]
+  (not (get @board-data position)))
+
+(def pawn [[:forward unoccupied?]
+           [(on-row? 2) :forward unoccupied? :forward unoccupied?]])
 
 (defn allowed-moves [position piece]
-  (let [[row col] position
-        [colour rank] (parse-piece piece)]
+  (let [[colour rank] (parse-piece piece)]
     (case rank
-      :pawn (cond-> []
-              (= row 2) (conj [3 col] [4 col]))
-     [])))
+      :pawn (for [actions pawn]
+              (reduce (fn [this-pos move]
+                        (cond
+                          (keyword? move) (get-pos this-pos colour move)
+                          (ifn? move) (if (move this-pos) this-pos (reduced nil))))
+                      position
+                      actions))
+      [])))
 
 (defn board []
   [:div.board
