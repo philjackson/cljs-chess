@@ -12,10 +12,10 @@
 (def allowed-moves-data (atom []))
 
 ;; initial layout
-(def board-data (atom {"11" "br" "12" "bn" "13" "bb" "14" "bq" "15" "bk" "16" "bb" "17" "bn" "18" "br"
-                       "21" "bp" "22" "bp" "23" "bp" "24" "bp" "25" "bp" "26" "bp" "27" "bp" "28" "bp"
-                       "71" "wp" "72" "wp" "73" "wp" "74" "wp" "75" "wp" "76" "wp" "77" "wp" "78" "wp"
-                       "81" "wr" "82" "wn" "83" "wb" "84" "wk" "85" "wq" "86" "wb" "87" "wn" "88" "wr"}))
+(def board-data (atom {[1, 1], "br" [1, 2], "bn" [1, 3], "bb" [1, 4], "bq" [1, 5], "bk" [1, 6], "bb" [1, 7], "bn" [1, 8], "br"
+                       [2, 1], "bp" [2, 2], "bp" [2, 3], "bp" [2, 4], "bp" [2, 5], "bp" [2, 6], "bp" [2, 7], "bp" [2, 8], "bp"
+                       [7, 1], "wp" [7, 2], "wp" [7, 3], "wp" [7, 4], "wp" [7, 5], "wp" [7, 6], "wp" [7, 7], "wp" [7, 8], "wp"
+                       [8, 1], "wr" [8, 2], "wn" [8, 3], "wb" [8, 4], "wk" [8, 5], "wq" [8, 6], "wb" [8, 7], "wn" [8, 8], "wr"}))
 
 ;; -------------------------
 ;; Views
@@ -42,12 +42,6 @@
                            (dissoc cur-pos)
                            (assoc nxt-pos piece)))))
 
-(defn parse-position [pos]
-  (let [[row* column*] (vec pos)
-        row (.parseInt js/window row*)
-        column (.parseInt js/window column*)]
-    [row column]))
-
 (defn get-pos [position colour & moves]
   (reduce (fn [[row col] move]
             (cond
@@ -55,35 +49,31 @@
               (= move :right) [row (inc col)]
               (= move :backward) [(dec row) col]
               (= move :forward) [(inc row) col]))
-          (parse-position position)
+          position
           moves))
 
 (defn allowed-moves [position piece]
-  (let [[row col] (vec position)
+  (let [[row col] position
         [colour rank] (parse-piece piece)]
     (case rank
       :pawn (cond-> []
-              (= row "2") (conj (str 3 col) (str 4 col)))
+              (= row 2) (conj [3 col] [4 col]))
      [])))
-
-(def rows [1 2 3 4 5 6 7 8])
-(def cols [1 2 3 4 5 6 7 8])
 
 (defn board []
   [:div.board
    (doall
-    (for[r rows]
+    (for[r (range 1 9)]
       (doall
-       (for [c cols]
-         (let [nm (str r c)
-               piece (get @board-data nm)]
-           ^{:key nm} [:div.square {:id nm
+       (for [c (range 1 9)]
+         (let [piece (get @board-data [r c])]
+           ^{:key (str r c)} [:div.square {:id (str r c)
                                     :class (square-colour r c)
                                     :on-click (fn []
-                                                (reset! currently-selected-square (if piece nm nil))
-                                                (reset! allowed-moves-data (if piece (allowed-moves nm piece) [])))}
-                       (let [allowed-move? (some #{nm} @allowed-moves-data)]
-                         [:div.inner-square {:class (when (= nm @currently-selected-square) "is-selected")}
+                                                (reset! currently-selected-square (if piece [r c] nil))
+                                                (reset! allowed-moves-data (if piece (allowed-moves [r c] piece) [])))}
+                       (let [allowed-move? (some #{[r c]} @allowed-moves-data)]
+                         [:div.inner-square {:class (when (= [r c] @currently-selected-square) "is-selected")}
                           (cond
                             allowed-move? [:span.allowed-move "•"]
                             piece [:img {:src (str "img/pieces/maya/" piece ".svg")}])])])))))])
