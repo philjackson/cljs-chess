@@ -2,11 +2,8 @@
     (:require [reagent.core :as reagent :refer [atom]]
               [secretary.core :as secretary :include-macros true]
               [accountant.core :as accountant]
-              [chess-test.moves :as moves]))
-
-(defn log [& messages]
-  (doseq [message messages ] (.log js/console message))
-  (last messages))
+              [chess-test.peices :as peices]
+              [chess-test.log :refer [log]]))
 
 (def currently-selected-square (atom "r1c1"))
 
@@ -26,17 +23,6 @@
     (if (= 0 (rem c 2)) "tan" "brown")
     (if (= 0 (rem c 2)) "brown" "tan")))
 
-(defn parse-piece [piece]
-  (let [[colour rank] (vec piece)]
-    [(if (= colour "b") :black :white)
-     (case rank
-       "p" :pawn
-       "n" :knight
-       "k" :king
-       "q" :queen
-       "b" :bishop
-       "r" :rooke)]))
-
 (defn update-pos [cur-pos nxt-pos piece]
   (let [copy @board-data]
     (reset! board-data (-> copy
@@ -52,14 +38,15 @@
       (= move :forward) [(inc row) col])))
 
 (defn allowed-moves [position piece]
-  (let [[colour rank] (parse-piece piece)]
+  (let [[colour rank] (peices/parse-piece piece)]
     (doall
      (for [actions (case rank
-                     :pawn moves/pawn)]
+                     :pawn peices/pawn
+                     :king peices/king)]
        (reduce (fn [this-pos move]
                  (cond
                    (keyword? move) (get-pos this-pos colour move)
-                   (ifn? move) (if (move board-data this-pos) this-pos (reduced nil))))
+                   (ifn? move) (if (move board-data colour this-pos) this-pos (reduced nil))))
                position
                actions)))))
 
