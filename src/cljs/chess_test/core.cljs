@@ -1,7 +1,8 @@
 (ns chess-test.core
     (:require [reagent.core :as reagent :refer [atom]]
               [secretary.core :as secretary :include-macros true]
-              [accountant.core :as accountant]))
+              [accountant.core :as accountant]
+              [chess-test.moves :as moves]))
 
 (defn log [& messages]
   (doseq [message messages ] (.log js/console message))
@@ -50,27 +51,17 @@
       (= move :backward) [(dec row) col]
       (= move :forward) [(inc row) col])))
 
-(defn on-row? [row]
-  (fn [position]
-    (= (first position) row)))
-
-(defn unoccupied? [position]
-  (not (get @board-data position)))
-
-(def pawn [[:forward unoccupied?]
-           [(on-row? 2) :forward unoccupied? :forward unoccupied?]])
-
 (defn allowed-moves [position piece]
   (let [[colour rank] (parse-piece piece)]
-    (case rank
-      :pawn (for [actions pawn]
-              (reduce (fn [this-pos move]
-                        (cond
-                          (keyword? move) (get-pos this-pos colour move)
-                          (ifn? move) (if (move this-pos) this-pos (reduced nil))))
-                      position
-                      actions))
-      [])))
+    (doall
+     (for [actions (case rank
+                     :pawn moves/pawn)]
+       (reduce (fn [this-pos move]
+                 (cond
+                   (keyword? move) (get-pos this-pos colour move)
+                   (ifn? move) (if (move board-data this-pos) this-pos (reduced nil))))
+               position
+               actions)))))
 
 (defn board []
   [:div.board
